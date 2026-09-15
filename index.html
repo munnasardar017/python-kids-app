@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Python Kids Classroom</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+    body {
+      margin: 0;
+      padding: 12px;
+      font-family: 'Comic Sans MS', 'Chalkboard SE', sans-serif;
+      background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .classroom-board {
+      background: #ffffff;
+      border: 6px solid #4a90e2;
+      border-radius: 24px;
+      padding: 15px;
+      width: 100%;
+      max-width: 900px;
+      box-shadow: 0 12px 25px rgba(0,0,0,0.18);
+      text-align: center;
+    }
+    .teacher-section {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 12px;
+      background: #f0f7ff;
+      border: 3px dashed #74b9ff;
+      border-radius: 18px;
+      padding: 10px 14px;
+    }
+    .teacher-avatar {
+      font-size: 45px;
+      line-height: 1;
+      display: inline-block;
+      transition: transform 0.2s;
+    }
+    .teacher-speaking {
+      animation: masterTalk 0.4s infinite alternate ease-in-out;
+    }
+    @keyframes masterTalk {
+      from { transform: scale(1) rotate(0deg); }
+      to { transform: scale(1.15) rotate(5deg); }
+    }
+    .speech-bubble {
+      background: #ffffff;
+      border: 2px solid #0984e3;
+      border-radius: 14px;
+      padding: 8px 14px;
+      font-size: 15px;
+      font-weight: bold;
+      color: #2d3436;
+      text-align: left;
+      flex: 1;
+      max-width: 580px;
+      box-shadow: 0 3px 6px rgba(0,0,0,0.05);
+      min-height: 42px;
+      display: flex;
+      align-items: center;
+    }
+    .grid-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+      gap: 10px;
+      max-height: 54vh;
+      overflow-y: auto;
+      padding: 6px;
+    }
+    .card {
+      background: #f1f2f6;
+      border: 3px solid #74b9ff;
+      border-radius: 14px;
+      padding: 12px 4px;
+      font-size: 16px;
+      font-weight: bold;
+      color: #2d3436;
+      cursor: pointer;
+      box-shadow: 0 4px 0 #0984e3;
+      user-select: none;
+      transition: transform 0.1s, box-shadow 0.1s, background 0.1s;
+    }
+    .card:active {
+      transform: translateY(3px);
+      box-shadow: 0 1px 0 #0984e3;
+      background: #ffeaa7;
+    }
+    .status-hint {
+      margin-top: 10px;
+      font-size: 13px;
+      color: #636e72;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="classroom-board">
+    <div class="teacher-section">
+      <div class="teacher-avatar" id="teacherMascot">🤖</div>
+      <div class="speech-bubble" id="speechText">
+        নমস্কার বন্ধু! আমি তোমার পাইথন মাস্টার। বোর্ডের যেকোনো কোডে আঙুল দাও, আমি বুঝিয়ে দেব!
+      </div>
+    </div>
+
+    <div class="grid-container" id="cardsGrid"></div>
+    <div class="status-hint">💡 সব কোড উন্মুক্ত—যেকোনো কোডে চাপ দিয়ে শেখা শুরু করো!</div>
+  </div>
+
+  <script>
+    const keywords = [
+      { code: "print()", en: "Print", bn: "শোনো মন দিয়ে, প্রিন্ট দিয়ে স্ক্রিনে লেখা বা ছবি ফুটিয়ে তোলা হয়।" },
+      { code: "input()", en: "Input", bn: "ইনপুট দিয়ে ব্যবহারকারীর কাছ থেকে তথ্য জেনে নেওয়া হয়।" },
+      { code: "if", en: "If", bn: "ইফ মানে যদি! যদি কথাটি সত্য হয় তবেই কাজ করবে।" },
+      { code: "elif", en: "Elif", bn: "এল-ইফ! আগের কথা না মিললে এই নতুন শর্ত পরখ করার নিয়ম।" },
+      { code: "else", en: "Else", bn: "এলস মানে অন্যথায়! কোনো শর্তই না মিললে যা করতে হবে।" },
+      { code: "for", en: "For", bn: "ফর লুপ! একই কাজ গুনে গুনে বারবার করার নিয়ম।" },
+      { code: "while", en: "While", bn: "হোয়াইল মানে যতক্ষণ! যতক্ষণ কথাটি সত্য থাকবে ততক্ষণ চলবে।" },
+      { code: "def", en: "Def", bn: "ডিএফ দিয়ে নতুন কোনো কাজের নিয়ম বা ফাংশন তৈরি করা হয়।" },
+      { code: "return", en: "Return", bn: "রিটার্ন! কাজের তৈরি করা শেষ উত্তর ফেরত পাঠানো।" },
+      { code: "True", en: "True", bn: "ট্রু! বাহ্, কথাটি একদম খাঁটি সত্য।" },
+      { code: "False", en: "False", bn: "ফলস! না বন্ধু, কথাটি ভুল বা মিথ্যে।" },
+      { code: "None", en: "None", bn: "নান! এখানে কিছু রাখা নেই, পুরো ফাঁকা বা শূন্য।" },
+      { code: "and", en: "And", bn: "এন্ড মানে এবং! দুই পাশের দুটো কথাই সত্যি হতে হবে।" },
+      { code: "or", en: "Or", bn: "অর মানে অথবা! যেকোনো একটা কথা সত্যি হলেই চলবে।" },
+      { code: "not", en: "Not", bn: "নট! যা সত্যি তাকে উল্টে ভুল করে দেয়।" },
+      { code: "is", en: "Is", bn: "ইজ দিয়ে যাচাই করা হয় দুটি জিনিস হুবহু একই কি না।" },
+      { code: "in", en: "In", bn: "ইন দিয়ে তালিকার ভেতরে জিনিসটি আছে কি না তা খোঁজা হয়।" },
+      { code: "break", en: "Break", bn: "ব্রেক! চলা কাজকে হঠাৎ মাঝপথে থামিয়ে দেওয়া।" },
+      { code: "continue", en: "Continue", bn: "কন্টিনিউ! এক ধাপ বাদ দিয়ে পরের ধাপে এগিয়ে যাওয়া।" },
+      { code: "pass", en: "Pass", bn: "পাস! এখন কিছু না করে চুপচাপ পার হয়ে যাওয়া।" },
+      { code: "import", en: "Import", bn: "ইমপোর্ট! বাইরে থেকে নতুন তৈরি করা টুলস নিয়ে আসা।" },
+      { code: "class", en: "Class", bn: "ক্লাস হলো নতুন জিনিস তৈরির মূল ছাঁচ বা মাস্টার প্ল্যান।" },
+      { code: "try", en: "Try", bn: "ট্রাই মানে চেষ্টা করা! কোনো কাজ সাবধানে চালিয়ে পরীক্ষা করা।" },
+      { code: "except", en: "Except", bn: "একসেপ্ট! কোডে কোনো ভুল হলে তা সামলানোর ব্যবস্থা।" },
+      { code: "len()", en: "Len", bn: "লেন্থ মানে দৈর্ঘ্য! ভেতরে কটা জিনিস আছে তা গুনে দেওয়া।" }
+    ];
+
+    const grid = document.getElementById("cardsGrid");
+    const speechText = document.getElementById("speechText");
+    const mascot = document.getElementById("teacherMascot");
+
+    keywords.forEach(item => {
+      const card = document.createElement("div");
+      card.className = "card";
+      card.innerText = item.code;
+      card.onclick = () => masterTeach(item);
+      grid.appendChild(card);
+    });
+
+    function masterTeach(item) {
+      speechText.innerHTML = "<strong>মাস্টার:</strong> '" + item.code + "' হলো — " + item.bn;
+      window.speechSynthesis.cancel();
+
+      mascot.classList.add("teacher-speaking");
+
+      const enSpeech = new SpeechSynthesisUtterance(item.en);
+      enSpeech.lang = 'en-US';
+      enSpeech.rate = 0.85;
+
+      const bnSpeech = new SpeechSynthesisUtterance(item.bn);
+      bnSpeech.lang = 'bn-IN';
+      bnSpeech.rate = 0.9;
+
+      enSpeech.onend = () => {
+        window.speechSynthesis.speak(bnSpeech);
+      };
+
+      bnSpeech.onend = () => {
+        mascot.classList.remove("teacher-speaking");
+      };
+
+      window.speechSynthesis.speak(enSpeech);
+    }
+  </script>
+</body>
+</html>
